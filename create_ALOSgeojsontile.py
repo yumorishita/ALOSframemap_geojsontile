@@ -119,9 +119,10 @@ def main(argv=None):
     # %% Settings
 #    colorA = "#0000ff"
 #    colorD = "#ff0000"
-    line_opacity = 0.4
+    line_color = "#ff0000"
+    line_opacity = 0.7
     line_width = 1
-    fill_opacity = 0.1
+    fill_opacity = 0.5
 
     url_list_base = 'https://gsrt.digiarc.aist.go.jp/insarbrowser/doc'
     url_alltxt = os.path.join(url_list_base, 'all_products_list.txt')
@@ -263,7 +264,7 @@ def main(argv=None):
 
         ### Add description? n_poch, n_ifg, url, networkpng
         properties = {"name": frameid, "description": descr,
-                      "_color": color, "_opacity": line_opacity,
+                      "_color": line_color, "_opacity": line_opacity,
                        "_weight": line_width, "_fillColor": color,
                        "_fillOpacity": fill_opacity}
         out_feature = {'type': 'Feature', 'properties': properties,
