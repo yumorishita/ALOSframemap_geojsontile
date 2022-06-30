@@ -129,6 +129,8 @@ def main(argv=None):
     url_gunw_base = 'https://s3.abci.ai/palsar-insar-pds/P1INSAR/GUNW'
 
     errlist = 'err_frames.txt'
+    if os.path.exists(errlist):
+        os.remove(errlist)
 
 
     # %% Read arg
@@ -248,7 +250,7 @@ def main(argv=None):
             plot_network(bperp_dict, unwrates_dict, pngfile)
         except:
             with open(errlist, 'a') as f:
-                f.write(f'{frameid}\n')
+                print(frameid, file=f)
         url_networkpng = os.path.join(url_list_base, frameid,
                                       f'network_{frameid}.png')
 
