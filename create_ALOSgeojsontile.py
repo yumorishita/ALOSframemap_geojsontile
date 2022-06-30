@@ -177,7 +177,7 @@ def main(argv=None):
         print(f'{i+1}/{n_all} {frameid} {AD},', end='')
 
         path, frame, inc = frameid.split('_')
-        if inc != '343': inc = 'other'
+        if inc != '343': inc = 'others'
         if int(path) > 320: # not sure exact boundary
             AD = 'A'
 #           color = colorA
@@ -248,7 +248,7 @@ def main(argv=None):
             plot_network(bperp_dict, unwrates_dict, pngfile)
         except:
             with open(errlist, 'a') as f:
-                f.write(frameid)
+                f.write(f'{frameid}\n')
         url_networkpng = os.path.join(url_list_base, frameid,
                                       f'network_{frameid}.png')
 
