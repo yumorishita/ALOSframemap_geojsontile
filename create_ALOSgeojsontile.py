@@ -105,7 +105,7 @@ def plot_network(bperp_dict, unwrates_dict, frameid, pngfile):
                  datetime.datetime.strptime('20110430', '%Y%m%d')))
 
     # Labels and legend
-    plt.xlabel('Time')
+    plt.xlabel('Time [year]')
     plt.ylabel('Bperp [m]')
     plt.text(0.01, 0.95, frameid, fontweight='bold', transform=ax.transAxes)
 
