@@ -18,6 +18,8 @@ import requests
 from matplotlib import pyplot as plt
 from matplotlib import dates as mdates
 import matplotlib as mpl
+from matplotlib.patheffects import withStroke
+from adjustText import adjust_text
 
 os.environ['LANG'] = 'en_US.UTF-8'
 
@@ -50,14 +52,13 @@ def add_feature(feature, geojson):
 
 
 # %% plot_network
-def plot_network(bperp_dict, unwrates_dict, pngfile):
+def plot_network(bperp_dict, unwrates_dict, frameid, pngfile):
     """
     Plot network of interferometric pairs with colors of unw_rate.
     """
 
     imdates = list(bperp_dict.keys())
     bperp = list(bperp_dict.values())
-    bperp_center = (max(bperp)+min(bperp))/2
     n_im = len(imdates)
     imdates_dt = np.array(([datetime.datetime.strptime(imd, '%Y%m%d')
                             for imd in imdates]))
@@ -67,14 +68,20 @@ def plot_network(bperp_dict, unwrates_dict, pngfile):
     ax = fig.add_axes([0.08, 0.10, 0.87,0.88])
 
     cmap = plt.get_cmap('cividis_r', 100)
+    texts = []
+    effects = [withStroke(linewidth=2, foreground="w")]
 
     for i, imd in enumerate(imdates):
         # Epochs
         ax.scatter(imdates_dt[i], bperp[i], c='k', alpha=0.6, zorder=101)
-        if bperp[i] > bperp_center: va='bottom'
-        else: va = 'top'
-        ax.annotate(imd[4:6]+'/'+imd[6:],
-                    (imdates_dt[i], bperp[i]), ha='center', va=va, zorder=102)
+        if imdates_dt[i].date() > datetime.date(2008, 8, 3):
+            va, ha = 'top', 'left'
+        else:
+            va, ha = 'bottom', 'right'
+        text = ax.annotate(imd[4:6]+'/'+imd[6:], (imdates_dt[i], bperp[i]),
+                           ha=ha, va=va, zorder=102, fontweight='normal',
+                           path_effects=effects, alpha=0.8)
+        texts.append(text)
 
         # Interferograms
         for j in range(i+1, n_im):
@@ -82,6 +89,8 @@ def plot_network(bperp_dict, unwrates_dict, pngfile):
             ax.plot([imdates_dt[i], imdates_dt[j]], [bperp[i], bperp[j]],
                      color=cmap(unwrate1), alpha=0.8, zorder=unwrate1,
                      linewidth=2)
+
+    adjust_text(texts)
 
     # Locater
     loc = ax.xaxis.set_major_locator(mdates.AutoDateLocator())
@@ -92,12 +101,13 @@ def plot_network(bperp_dict, unwrates_dict, pngfile):
     ax.xaxis.set_minor_locator(mdates.YearLocator())
     ax.grid(visible=True, which='minor', linewidth=2)
 
-    ax.set_xlim((datetime.datetime.strptime('20060501', '%Y%m%d'),
+    ax.set_xlim((datetime.datetime.strptime('20060208', '%Y%m%d'),
                  datetime.datetime.strptime('20110430', '%Y%m%d')))
 
     # Labels and legend
     plt.xlabel('Time')
     plt.ylabel('Bperp [m]')
+    plt.text(0.01, 0.95, frameid, fontweight='bold', transform=ax.transAxes)
 
     # Colorbar
     from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -168,6 +178,7 @@ def main(argv=None):
     print('Get all_products_list.txt')
     all_list = requests.get(url_alltxt).text.splitlines()
     n_all = len(all_list)
+    all_list = all_list[0:1]
 
     print('For each frame ID')
     for i, plisttxt in enumerate(all_list):
@@ -247,7 +258,7 @@ def main(argv=None):
         # %% Create network plot
         pngfile = os.path.join('network', f'network_{frameid}.png')
         try:
-            plot_network(bperp_dict, unwrates_dict, pngfile)
+            plot_network(bperp_dict, unwrates_dict, frameid, pngfile)
         except:
             with open(errlist, 'a') as f:
                 print(frameid, file=f)
