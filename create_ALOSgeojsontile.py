@@ -178,7 +178,7 @@ def main(argv=None):
     print('Get all_products_list.txt')
     all_list = requests.get(url_alltxt).text.splitlines()
     n_all = len(all_list)
-    all_list = all_list[0:1]
+#    all_list = all_list[0:1]
 
     print('For each frame ID')
     for i, plisttxt in enumerate(all_list):
