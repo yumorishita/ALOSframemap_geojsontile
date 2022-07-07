@@ -102,7 +102,7 @@ def plot_network(bperp_dict, unwrates_dict, frameid, pngfile):
     ax.grid(visible=True, which='minor', linewidth=2)
 
     ax.set_xlim((datetime.datetime.strptime('20060208', '%Y%m%d'),
-                 datetime.datetime.strptime('20110430', '%Y%m%d')))
+                 datetime.datetime.strptime('20110801', '%Y%m%d')))
 
     # Labels and legend
     plt.xlabel('Time [year]')
