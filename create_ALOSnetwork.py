@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Create GeoJSON tile of AIST ALOS frames for GSIMaps.
+Plot network figure of a AIST ALOS frame.
 
 """
 
@@ -57,10 +57,11 @@ def plot_network(bperp_dict, unwrates_dict, frameid, pngfile):
 
         # Interferograms
         for j in range(i+1, n_im):
-            unwrate1 = int(unwrates_dict[f'{imd}_{imdates[j]}'])
-            ax.plot([imdates_dt[i], imdates_dt[j]], [bperp[i], bperp[j]],
-                     color=cmap(unwrate1), alpha=0.8, zorder=unwrate1,
-                     linewidth=2)
+            if f'{imd}_{imdates[j]}' in unwrates_dict:
+                unwrate1 = int(unwrates_dict[f'{imd}_{imdates[j]}'])
+                ax.plot([imdates_dt[i], imdates_dt[j]], [bperp[i], bperp[j]],
+                         color=cmap(unwrate1), alpha=0.8, zorder=unwrate1,
+                         linewidth=2)
 
     adjust_text(texts)
 
@@ -107,7 +108,7 @@ def main(argv=None):
     start = time.time()
     prog = os.path.basename(sys.argv[0])
     description = 'Create network plot of AIST ALOS frame.'
-    print(f"\n{prog} ver1.0.0 20220714 Y. Morishita")
+    print(f"\n{prog} ver1.0.1 20220716 Y. Morishita")
     print(f"{prog} {' '.join(sys.argv[1:])}\n")
 
     parser = argparse.ArgumentParser(description=description)
