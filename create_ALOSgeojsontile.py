@@ -45,14 +45,25 @@ def add_feature(feature, geojson):
     with open(geojson, 'w') as f:
         json.dump({'type': 'FeatureCollection', 'features': features_list}, f)
 
+# %%
+def download_txt(url, n_retry=10):
+    for i in range(n_retry):
+        try:
+            with requests.get(url) as res:
+                res.raise_for_status()
+                _list = res.text.splitlines()
+            return _list
+        except:
+            print(f'{i+1}st Download error')
+            pass # try again
+
+    raise Exception(f"Error while downloading from {url}")
 
 
 # %% Main
 def main(argv=None):
 
     # %% Settings
-#    colorA = "#0000ff"
-#    colorD = "#ff0000"
     line_color = "#ff0000"
     line_opacity = 0.7
     line_width = 1
@@ -62,16 +73,12 @@ def main(argv=None):
     url_alltxt = os.path.join(url_list_base, 'all_products_list.txt')
     url_gunw_base = 'https://s3.abci.ai/palsar-insar-pds/P1INSAR/GUNW'
 
-    errlist = 'err_frames.txt'
-    if os.path.exists(errlist):
-        os.remove(errlist)
-
 
     # %% Read arg
     start = time.time()
     prog = os.path.basename(sys.argv[0])
     description = 'Create GeoJSON tile of AIST ALOS frame map for GSIMaps.'
-    print(f"\n{prog} ver1.1.0 20220714 Y. Morishita")
+    print(f"\n{prog} ver1.1.1 20220717 Y. Morishita")
     print(f"{prog} {' '.join(sys.argv[1:])}\n")
 
     parser = argparse.ArgumentParser(description=description)
@@ -100,9 +107,8 @@ def main(argv=None):
 
     # %% For each frames
     print('Get all_products_list.txt')
-    all_list = requests.get(url_alltxt).text.splitlines()
+    all_list = download_txt(url_alltxt)
     n_all = len(all_list)
-#    all_list = all_list[0:1]
 
     print('For each frame ID')
     for i, plisttxt in enumerate(all_list):
@@ -117,17 +123,15 @@ def main(argv=None):
         if inc != '343': inc = 'others'
         if int(path) > 320: # not sure exact boundary
             AD = 'A'
-#           color = colorA
         else:
             AD = 'D'
-#           color = colorD
 
-        products_list = requests.get(plisttxt).text.splitlines()
+        products_list = download_txt(plisttxt)
 
         # Unwrap rate
         url_unwratetxt = os.path.join(url_list_base, frameid,
                                       'unwrap_rates_list.txt')
-        unwrates = requests.get(url_unwratetxt).text.splitlines()
+        unwrates = download_txt(url_unwratetxt)
         unwrates_dict = {}
         for l in unwrates:
             unwrates_dict[l.split(',')[0]] = float(l.split(',')[1])
@@ -135,14 +139,14 @@ def main(argv=None):
         # bperp and number
         url_baselines = os.path.join(url_gunw_base, frameid,
                                      f'{frameid}_GUNW.baselines')
-        baselines = requests.get(url_baselines).text.splitlines()
+        baselines = download_txt(url_baselines)
         bperp_dict = {} # e.g. '20070312': 19.008
         for l in baselines:
             bperp_dict[l.split()[1]] = float(l.split()[-2])
             bperp_dict[l.split()[2]] = float(l.split()[-1])
 
         n_im = len(bperp_dict)
-        n_ifg = int(n_im*(n_im-1)/2)
+        n_ifg = len(baselines)
 
         if n_im >= 32:
             color = "#ff0000"
@@ -154,7 +158,7 @@ def main(argv=None):
             if 'GUNW.txt' in file:
                 url_gunwtxt = file
                 break
-        gunwtxt = requests.get(url_gunwtxt).text.splitlines()
+        gunwtxt = download_txt(url_gunwtxt)
 
         lat_sn = [float(s.split('=')[-1]) for s in gunwtxt
                  if 'SceneStartNearRangeLatitudeDegree' in s][0]
@@ -179,15 +183,14 @@ def main(argv=None):
 
 
         # %% Append geojson
-        url_networkpng = os.path.join(url_list_base, frameid,
-                                      f'network_{frameid}.png')
+        url_networkpng = os.path.join(url_list_base, frameid, 'network.png')
         coords = [[[lon_sn, lat_sn], [lon_sf, lat_sf], [lon_ef, lat_ef],
                    [lon_en, lat_en], [lon_sn, lat_sn]]]
         geometry = {"type": "Polygon", "coordinates": coords}
         descr = f'# epochs: {n_im}<br># ifgs: {n_ifg}<br>' \
                 f'<a href="{plisttxt}" target="_blank">Product list</a><br>' \
                 f'<a href="{url_networkpng}" target="_blank">' \
-                f'<img src="{url_networkpng}"></a>'
+                f'<img src="{url_networkpng}" width="500"></a>'
 
         ### Add description? n_poch, n_ifg, url, networkpng
         properties = {"name": frameid, "description": descr,
