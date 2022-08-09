@@ -51,7 +51,6 @@ def add_feature(feature, geojson):
 def main(argv=None):
 
     # %% Settings
-    color = "#ff0000"
     line_opacity = 0.4
     line_width = 1
     fill_opacity = 0.1
@@ -62,14 +61,14 @@ def main(argv=None):
     start = time.time()
     prog = os.path.basename(sys.argv[0])
     description = 'Create ZL=1 GeoJSON of ALOS frame map.'
-    print(f"\n{prog} ver1.0.0 20220718 Y. Morishita")
+    print(f"\n{prog} ver1.0.1 20220809 Y. Morishita")
     print(f"{prog} {' '.join(sys.argv[1:])}\n")
 
     parser = argparse.ArgumentParser(description=description)
     addarg = parser.add_argument
     addarg('-i', '--input_dir', type=str, required=True,
             help='Input directory containing GeoJSON tiles to be dissolved')
-    addarg('-z', '--zoomlevel', type=int, default=6,
+    addarg('-z', '--zoomlevel', type=int, default=5,
             help='Input zoom level')
     args = parser.parse_args()
 
@@ -93,6 +92,8 @@ def main(argv=None):
         with open(_json, 'r') as f:
             json_dict = json.load(f)
         features_list = json_dict['features']
+
+        color = features_list[0]['properties']['_color']
 
         for feature in features_list:
             geometry = feature['geometry']

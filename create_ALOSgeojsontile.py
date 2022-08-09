@@ -64,7 +64,8 @@ def download_txt(url, n_retry=10):
 def main(argv=None):
 
     # %% Settings
-    line_color = "#ff0000"
+    line_colorA = "#0000ff"
+    line_colorD = "#ff0000"
     line_opacity = 0.7
     line_width = 1
     fill_opacity = 0.5
@@ -78,12 +79,12 @@ def main(argv=None):
     start = time.time()
     prog = os.path.basename(sys.argv[0])
     description = 'Create GeoJSON tile of AIST ALOS frame map for GSIMaps.'
-    print(f"\n{prog} ver1.1.1 20220717 Y. Morishita")
+    print(f"\n{prog} ver1.1.2 20220809 Y. Morishita")
     print(f"{prog} {' '.join(sys.argv[1:])}\n")
 
     parser = argparse.ArgumentParser(description=description)
     addarg = parser.add_argument
-    addarg('-z', '--zoomlevel', type=int, default=6,
+    addarg('-z', '--zoomlevel', type=int, default=5,
             help='Output zoom level')
     args = parser.parse_args()
 
@@ -99,10 +100,6 @@ def main(argv=None):
                 subprocess.run(['rm', '-rf', bdir])
             zldir = os.path.join(bdir, str(zl))
             os.makedirs(zldir)
-
-    if os.path.exists('network'):
-        subprocess.run(['rm', '-rf', 'network'])
-    os.mkdir('network')
 
 
     # %% For each frames
@@ -121,10 +118,12 @@ def main(argv=None):
 
         path, frame, inc = frameid.split('_')
         if inc != '343': inc = 'others'
-        if int(path) > 320: # not sure exact boundary
-            AD = 'A'
-        else:
+        if 1810 <= int(frame) <= 5400:
             AD = 'D'
+            line_color = line_colorD
+        else:
+            AD = 'A'
+            line_color = line_colorA
 
         products_list = download_txt(plisttxt)
 
@@ -149,8 +148,9 @@ def main(argv=None):
         n_ifg = len(baselines)
 
         if n_im >= 32:
-            color = "#ff0000"
-        color = "#ff"+hex(255-n_im*8)[2:].zfill(2)*2
+            color = line_color
+        else:
+            color = line_color.replace('0000', hex(255-n_im*8)[2:].zfill(2)*2)
 
         # latlon
         url_gunwtxt = None
